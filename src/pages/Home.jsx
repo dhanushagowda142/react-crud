@@ -2,9 +2,24 @@ import React, { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import UserApi from '../API/UserApi'
 import { NavLink } from 'react-router-dom'
+import ReactPaginate from 'react-paginate'
 
 function Home() {
   const [users,setUsers] = useState([])
+  const [index,setIndex] = useState(0)
+
+  const itemPerPages=5
+  const endIndex = index + itemPerPages;
+  const pCount = Math.ceil(users.length/itemPerPages)
+
+  const currentUsers = users.slice(index,endIndex)
+
+  //page item handler
+  const pageItemHandler =(e) =>{
+    console.log('selected item=',e.selected) //page item index
+    let newIndex = (e.selected * itemPerPages) % users.length;
+    setIndex(newIndex)
+  }
 
   const readHandler = async() =>{
     await UserApi.readAll().then(res =>{
@@ -18,7 +33,19 @@ function Home() {
 
   useEffect(() =>{
     readHandler()
-  },[])
+  },[users])
+
+  //delete
+  const deleteHandler=async(id)=>{
+    if(window.confirm(`Are you sure to delete user id?`)){
+        await UserApi.deleteUser(id)
+        .then(res => {
+            toast.success(res.data.msg)
+        }).catch(err =>toast.error(err.response.data.msg))
+    }else{
+        toast.warning(`delete terminated`)
+    }
+}
 
   return (
     <div className="container">
@@ -43,7 +70,7 @@ function Home() {
               </thead>
               <tbody>
                 {
-                  users && users.map((item,index) =>{
+                  currentUsers && currentUsers.map((item,index) =>{
                     return(
                       <tr key={index} className='text-center'>
                         <td>{item._id}</td>
@@ -53,17 +80,40 @@ function Home() {
                         <td>{item.isActive ? <strong className='text-success'>Active</strong> :
                         <strong className='text-danger'>Blocked</strong>}</td>
                         <td>
-                          <NavLink className="btn btn-sm btn-info"><i className='bi bi-pencil'></i></NavLink>
+                          <NavLink to={`/edit/${item._id}`} className="btn btn-sm btn-info"><i className='bi bi-pencil'></i></NavLink>
 
-                          <button className="btn btn-sm btn-danger" title='Delete'>
+                          <button onClick={() => deleteHandler(item._id)} className="btn btn-sm btn-danger" title='Delete'>
                             <i className='bi bi-trash'></i>
                           </button>
                         </td>
                       </tr>
+
                     )
                   })
                 }
               </tbody>
+              <tfoot>
+                <tr>
+                  <th colSpan={6}>
+                    <ReactPaginate 
+                    pageCount={pCount}
+                    onPageChange={pageItemHandler}
+                    className='pagination justify-content-center'
+                    pageClassName='page-item'
+                    pageLinkClassName='page-link'
+                    nextClassName='page-item'
+                    nextLinkClassName='page-link'
+                    previousClassName='page-item'
+                    previousLinkClassName='page-link'
+                    activeClassName='active'
+                    activeLinkClassName='active'
+                    breakAriaLabels="..."
+                    pageRangeDisplayed={3}
+                   />
+                  </th>
+                </tr>
+
+              </tfoot>
             </table>
           </div>
         </div>

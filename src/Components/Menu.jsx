@@ -20,9 +20,7 @@ function Menu() {
                         <li className="nav-item">
                             <NavLink to={'/create'} className="nav-link">Create</NavLink>
                         </li>
-                        <li className="nav-item">
-                            <NavLink to={'/edit'} className="nav-link">Update</NavLink>
-                        </li>
+                        
                     </ul>
                 </div>
             </div>

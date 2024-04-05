@@ -1,11 +1,58 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import UserApi from '../API/UserApi'
+import { toast } from 'react-toastify'
 
 function Update() {
+    const [user,setUser] = useState({
+        name:"",
+        email:"",
+        mobile:""
+    })
+    const navigate = useNavigate()
+    const params = useParams()
+
+    //read single user data
+    const readData=async() =>{
+        await UserApi.readSingle(params.id)
+        .then(res =>{
+            console.log('sigle user=',res.data)
+            setUser(res.data.user)
+        }).catch(err => toast.error(err.response.data.msg))
+    }
+
+    useEffect(() =>{
+        readData()
+    },[])
+
+    
+
+    const readInput=(e)=>{
+        const {name,value} = e.target
+        setUser({...user,[name]:value})
+    }
+
+    const submitHandler = async(e) =>{
+        e.preventDefault()
+        try{
+            await UserApi.updateUser(user,params.id)
+            .then(res =>{
+                toast.success(res.data.msg)
+                navigate('/')
+            }).catch(err =>{
+                toast.error(err.response.data.msg)
+            })
+        }catch(err){
+            toast.error(err.massage)
+        }
+    }
+
   return (
     <div className="container">
         <div className="row">
             <div className="col-md-12 text-center">
                 <h3 className="display-3 text-dark">Update user</h3>
+                <p className="text-dark"> {params.id} </p>
             </div>
         </div>
 
@@ -13,20 +60,20 @@ function Update() {
             <div className="col-md-6 offset-md-3">
                 <div className="card">
                     <div className="card-body">
-                        <form autoComplete='off'>
-                            <div className="form-group mt-2">
+                        <form autoComplete='off' onSubmit={submitHandler}>
+                        <div className="form-group mt-2">
                                 <label htmlFor="name">Name</label>
-                                <input type="text" name='name' id='name' required className="form-control" />
+                                <input type="text" name='name' id='name' value={user.name} onChange={readInput} required className="form-control" />
                             </div>
 
                             <div className="form-group mt-2">
                                 <label htmlFor="email">Email</label>
-                                <input type="email" name='email' id='email' required className="form-control" />
+                                <input type="email" name='email' id='email' value={user.email} onChange={readInput} required className="form-control" />
                             </div>
 
                             <div className="form-group mt-2">
                                 <label htmlFor="mobile">Mobile</label>
-                                <input type="number" name='mobile' id='mobile' required className="form-control" />
+                                <input type="number" name='mobile' id='mobile' value={user.mobile} onChange={readInput} required className="form-control" />
                             </div>
 
                             <div className="form-group mt-2">
